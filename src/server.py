@@ -6,6 +6,7 @@ La lógica de las herramientas y la configuración residen directamente en este 
 import json
 import os
 import sys
+import httpx
 from typing import Any
 
 from dotenv import load_dotenv
@@ -21,18 +22,30 @@ HOST = os.getenv("HOST", "127.0.0.1")
 PORT = int(os.getenv("PORT", "8000"))
 TRANSPORT = os.getenv("TRANSPORT", "sse").lower().strip()
 
+# Configuración de autenticación (token JWT) para el servidor MCP
+AUTH_TOKEN = (
+    "eyJhbGciOiJIUzI1NiJ9."
+    "eyJ1c2VySWQiOjE4LCJyb2wiOiJhZG1pbmlzdHJhZG9yIiwidXNlcm5hbWUiOiJBZG1pblBydWViYSIsInN1YiI6ImFkbWlucHJ1ZWJhMUBnbWFpbC5jb20iLCJpYXQiOjE3ODg0MzgwNjEsImV4cCI6MTc4ODQ0MTY2MX0."
+    "KhERDzLjWgujP41GB3ht3mTl-rNL-oGB8tVgKm3-qco"
+)
+
+BASE_HEADERS = {
+    "Authorization": f"Bearer {AUTH_TOKEN}",
+    "Content-Type": "application/json",
+}
+
 # Creacion y configuración del servidor MCP 
 def create_server() -> MCPServer:
-    """Crea y configura el servidor MCP con herramientas matemáticas básicas."""
+    """Crea y configura el servidor MCP con herramientas de PulseGym."""
     server = MCPServer(
-        name="MathToolsServer",
+        name="PulseGymServer",
         version="1.0.0",
-        description="Servidor MCP con herramientas matemáticas (suma, multiplicación, potenciación)",
-        instructions="Este servidor provee herramientas para sumar, multiplicar y calcular potencias numéricas.",
+        description="Servidor MCP para consultar equipos e historial de accesos de PulseGym.",
+        instructions="Este servidor permite obtener informacion operativa del proyecto PulseGym",
     )
 
     # -------------------------------------------------------------
-    # 1. HERRAMIENTA: SUMAR
+    # 1. Obtener equipos
     # -------------------------------------------------------------
     @server.tool(
         name="sumar",
