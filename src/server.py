@@ -22,15 +22,9 @@ HOST = os.getenv("HOST", "127.0.0.1")
 PORT = int(os.getenv("PORT", "8000"))
 TRANSPORT = os.getenv("TRANSPORT", "sse").lower().strip()
 
-# Configuración de autenticación (token JWT) para el servidor MCP
-AUTH_TOKEN = (
-    "eyJhbGciOiJIUzI1NiJ9."
-    "eyJ1c2VySWQiOjE4LCJyb2wiOiJhZG1pbmlzdHJhZG9yIiwidXNlcm5hbWUiOiJBZG1pblBydWViYSIsInN1YiI6ImFkbWlucHJ1ZWJhMUBnbWFpbC5jb20iLCJpYXQiOjE3ODg0MzgwNjEsImV4cCI6MTc4ODQ0MTY2MX0."
-    "KhERDzLjWgujP41GB3ht3mTl-rNL-oGB8tVgKm3-qco"
-)
 
 BASE_HEADERS = {
-    "Authorization": f"Bearer {AUTH_TOKEN}",
+    "Authorization": f"Bearer {os.getenv('AUTH_TOKEN')}",
     "Content-Type": "application/json",
 }
 
@@ -58,12 +52,12 @@ def create_server() -> MCPServer:
         
         async with httpx.AsyncClient() as client:
             try:
-                response = await client.get(url, headers=BASE_HEADERS, timeuout=10.0)
+                response = await client.get(url, headers=BASE_HEADERS, timeout=10.0)
                 if response.status_code == 200:
                     return response.json()
                 return {
                     "success" : False,
-                    "error" : f"Error Http {reponse.status_code}: {reponse.text}",
+                    "error" : f"Error Http {response.status_code}: {response.text}",
                 }
             except Exception as exc:
                 return {"success": False, "error": f"Error de conexion: {str(exc)}"}
