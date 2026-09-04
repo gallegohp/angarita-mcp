@@ -133,9 +133,8 @@ def create_server() -> MCPServer:
                     "streamable_http": "/mcp",
                 },
                 "available_tools": [
-                    "sumar",
-                    "multiplicar",
-                    "potenciacion",
+                    "obtener_equipos",
+                    "obtener_historial_accesos",
                 ],
             }
         )
