@@ -48,87 +48,49 @@ def create_server() -> MCPServer:
     # 1. Obtener equipos
     # -------------------------------------------------------------
     @server.tool(
-        name="sumar",
-        description="Suma dos números (a + b) y devuelve el resultado.",
+        name="obtener_equipos",
+        description="Obtener la lista de todos los equipos del gimnasio y su estado operativo (Operativo, Mantenimiento, etc.).",
     )
-    def sumar(a: float, b: float) -> dict[str, Any]:
-        """Suma dos números (a + b)."""
-        print(f"👉 [MCP Tool] Ejecutando sumar: a={a}, b={b}")
-        resultado = a + b + 5
-        return {
-            "success": True,
-            "operacion": "suma",
-            "a": a,
-            "b": b,
-            "resultado": resultado,
-        }
-
+    async def obtener_equipos() -> dict[str, Any]:
+        """Consulta el endpoint /api/equipos/todos."""
+        url = "https://api.pulsegym.uk/pg-ms-operation/api/equipos/todos"
+        print(f"👉 [MCP Tool] Ejecutando obtener_equipos")
+        
+        async with httpx.AsyncClient() as client:
+            try:
+                response = await client.get(url, headers=BASE_HEADERS, timeuout=10.0)
+                if response.status_code == 200:
+                    return response.json()
+                return {
+                    "success" : False,
+                    "error" : f"Error Http {reponse.status_code}: {reponse.text}",
+                }
+            except Exception as exc:
+                return {"success": False, "error": f"Error de conexion: {str(exc)}"}
     # -------------------------------------------------------------
-    # 2. HERRAMIENTA: MULTIPLICAR
+    # 2. Obtener historial de accesos
     # -------------------------------------------------------------
     @server.tool(
-        name="multiplicar",
-        description="Multiplica dos números (a * b) y devuelve el resultado.",
+        name="obtener_historial_accesos",
+        description="Obtener el historial de accesos de usuarios al gimnasio (entradas por APP, sede).",
     )
-    def multiplicar(a: float, b: float) -> dict[str, Any]:
-        """Multiplica dos números (a * b)."""
-        print(f"👉 [MCP Tool] Ejecutando multiplicar: a={a}, b={b}")
-        resultado = a * b
-        return {
-            "success": True,
-            "operacion": "multiplicacion",
-            "a": a,
-            "b": b,
-            "resultado": resultado,
-        }
-
-    # -------------------------------------------------------------
-    # 2. HERRAMIENTA: DIVIDIR
-    # -------------------------------------------------------------
-    @server.tool(
-        name="dividir",
-        description="Divide dos números (a / b) y devuelve el resultado.",
-    )
-    def dividir(a: float, b: float) -> dict[str, Any]:
-        """Divide dos números (a */ b)."""
-        print(f"👉 [MCP Tool] Ejecutando dividir: a={a}, b={b}")
-        resultado = a / b
-        return {
-            "success": True,
-            "operacion": "division",
-            "a": a,
-            "b": b,
-            "resultado": resultado,
-        }
-
-    # -------------------------------------------------------------
-    # 3. HERRAMIENTA: POTENCIACIÓN
-    # -------------------------------------------------------------
-    @server.tool(
-        name="potenciacion",
-        description="Calcula la potencia de un número base elevado a un exponente (base ** exponente).",
-    )
-    def potenciacion(base: float, exponente: float) -> dict[str, Any]:
-        """Calcula la potenciación (base ** exponente)."""
-        print(f"👉 [MCP Tool] Ejecutando potenciacion: base={base}, exponente={exponente}")
-        try:
-            if exponente > 10000:
+    async def obtener_historial_accesos() -> dict[str, Any]:
+        """Consulta el endpoint /api/historial-accesos."""
+        url = "https://api.pulsegym.uk/pg-ms-operation/api/historial-accesos"
+        print(f"👉 [MCP Tool] Ejecutando obtener_historial_accesos")
+        
+        async with httpx.AsyncClient() as client:
+            try:
+                response = await client.get(url, headers=BASE_HEADERS, timeout=10.0)
+                if response.status_code == 200:
+                    return response.json()
                 return {
                     "success": False,
-                    "error": "Exponente demasiado grande (máximo permitido: 10000).",
+                    "error": f"Error HTTP {response.status_code}: {response.text}",
                 }
-            resultado = base ** exponente
-            return {
-                "success": True,
-                "operacion": "potenciacion",
-                "base": base,
-                "exponente": exponente,
-                "resultado": resultado,
-            }
-        except OverflowError:
-            return {"success": False, "error": "Resultado demasiado grande (desbordamiento numérico)."}
-        except Exception as exc:
-            return {"success": False, "error": f"Error en la potenciación: {str(exc)}"}
+            except Exception as exc:
+                return {"success": False, "error": f"Error de conexión: {str(exc)}"}
+
 
     # -------------------------------------------------------------
     # RECURSO DE ESTADO (MCP Resource)
@@ -144,10 +106,10 @@ def create_server() -> MCPServer:
         return json.dumps(
             {
                 "status": "healthy",
-                "server": "MathToolsServer",
+                "server": "PulseGymServer",
                 "version": "1.0.0",
                 "transport": TRANSPORT,
-                "tools": ["sumar", "multiplicar", "potenciacion", "dividir"],
+                "tools": ["obtener_equipos", "obtener_historial_accesos"],
             },
             indent=2,
         )
